@@ -53,19 +53,16 @@ export const signup = (name, email, password, re_password) => async (
   const body = { name, email, password, re_password };
 
   try {
-    dispatch(setLoading(true));
-
     const res = await axios.post('/auth/users/', body);
-
     dispatch(login(email, password));
     await dispatch(load_user(res.data.access));
   } catch (err) {
     dispatch({
       type: SIGNUP_FAIL,
-      payload: err.response?.data,
+      payload: {
+        signUp: err.response?.data,
+      },
     });
-  } finally {
-    dispatch(setLoading(false));
   }
 };
 
@@ -134,31 +131,35 @@ export const login = (email, password) => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: LOGIN_FAIL,
-      payload: err.response.data,
+      payload: {
+        login: err.response.data,
+      },
     });
   } finally {
     dispatch(setLoading(false));
   }
 };
 
-export const reset_password = (email) => async (dispatch) => {
+export const reset_password = (email, locale) => async (dispatch) => {
   const config = {
     headers: {
       'Content-Type': 'application/json',
     },
   };
 
-  const body = JSON.stringify({ email });
+  const body = JSON.stringify({ email, language: locale });
 
   try {
-    await axios.post('/auth/users/reset_password/', body, config);
+    await axios.post('/api/users/reset_password', body, config);
     dispatch({
       type: PASSWORD_RESET_SUCESS,
     });
   } catch (err) {
     dispatch({
       type: PASSWORD_RESET_FAIL,
-      payload: err.response.data,
+      payload: {
+        resetPassword: err.response.data,
+      },
     });
   }
 };
@@ -167,12 +168,13 @@ export const reset_password_confirm = (
   uid,
   token,
   new_password,
-  re_new_password
+  re_new_password,
+  language
 ) => async (dispatch) => {
-  const body = { uid, token, new_password, re_new_password };
+  const body = { uid, token, new_password, re_new_password, language };
 
   try {
-    await axios.post('/auth/users/reset_password_confirm/', body);
+    await axios.post('/api/users/reset_password_confirm', body);
     dispatch({
       type: PASSWORD_RESET_CONFIRM_SUCESS,
     });
